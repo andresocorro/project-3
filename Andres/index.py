@@ -4,6 +4,7 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 import dash_table 
+import dash_table_experiments as dt
 from dash.exceptions import PreventUpdate
 
 import flask
@@ -13,6 +14,8 @@ import dateutil.relativedelta
 from datetime import date
 import datetime
 import yfinance as yf
+
+
 import numpy as np
 import praw
 import sqlite3
