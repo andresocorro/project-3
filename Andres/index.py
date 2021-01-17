@@ -14,8 +14,6 @@ import dateutil.relativedelta
 from datetime import date
 import datetime
 import yfinance as yf
-
-
 import numpy as np
 import praw
 import sqlite3
@@ -24,28 +22,32 @@ import plotly
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from dash_utils import make_table
+from dash_utils import make_table, make_card, ticker_inputs, make_item
+from reddit_data import get_reddit
+from tweet_data import get_options_flow
+from fin_report_data import get_financial_report #, get_financial_reportformatted
 
-
-
+conn = sqlite3.connect('stocks.sqlite')
 server = Flask(__name__)
 app = dash.Dash(__name__,server = server ,meta_tags=[{ "content": "width=device-width"}], external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 app.config.suppress_callback_exceptions = True
 
+get_options_flow()
+flow= pd.read_sql("select datetime, text from tweets order by datetime desc", conn)
 
-ayout1 = html.Div([
+layout1 = html.Div([
         # html.Div(id = 'cards')
                 dbc.Row([dbc.Col(make_card("Enter Ticker", "success", ticker_inputs('ticker-input', 'date-picker', 36)))]) #row 1
                 ,dbc.Row([dbc.Col([make_card("Twitter Order Flow", 'primary', make_table('table-sorting-filtering2', flow, '17px', 10))])
                         ,dbc.Col([make_card("Fin table ", "secondary", html.Div(id="fin-table"))])
                         ])
-                , dbc.Row([make_card("select ticker", "warning", "select ticker")],id = 'cards') #row 2
+                ,dbc.Row([make_card("select ticker", "warning", "select ticker")],id = 'cards') #row 2
                 , dbc.Row([
                         dbc.Col([ 
                           dbc.Row([make_card("Wallstreet Bets New Posts", 'primary'
                                              ,[html.P(html.Button('Refresh', id='refresh'))
-                                               , make_table('table-sorting-filtering', dfr, '17px', 4)])
+                                               , #make_table('table-sorting-filtering', dfr, '17px', 4)])
                                   ], justify = 'center')
                                 ])
 
