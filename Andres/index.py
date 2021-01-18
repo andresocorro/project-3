@@ -27,31 +27,61 @@ from reddit_data import get_reddit
 from tweet_data import get_options_flow
 from fin_report_data import get_financial_report #, get_financial_reportformatted
 
+
+FL = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/flatly/bootstrap.min.css"
+# DL = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/darkly/bootstrap.min.css"
 conn = sqlite3.connect('stocks.sqlite')
 server = Flask(__name__)
-app = dash.Dash(__name__,server = server ,meta_tags=[{ "content": "width=device-width"}], external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = dash.Dash(__name__,server = server ,meta_tags=[{ "content": "width=device-width"}], external_stylesheets=[FL])
 
 app.config.suppress_callback_exceptions = True
 
 get_options_flow()
 flow= pd.read_sql("select datetime, text from tweets order by datetime desc", conn)
 
+global dfr 
+dfr = get_reddit()
+                
+navbar = dbc.NavbarSimple(
+    children=[
+        dbc.NavItem(dbc.NavLink("Page 1", href="#")),
+        dbc.DropdownMenu(
+            children=[
+                dbc.DropdownMenuItem("More pages", header=True),
+                dbc.DropdownMenuItem("Page 2", href="#"),
+                dbc.DropdownMenuItem("Page 3", href="#"),
+            ],
+            nav=True,
+            in_navbar=True,
+            label="More",
+        ),
+    ],
+    brand="NavbarSimple",
+    brand_href="#",
+    color="primary",
+    dark=True,
+)
+
 layout1 = html.Div([
         # html.Div(id = 'cards')
-                dbc.Row([dbc.Col(make_card("Enter Ticker", "success", ticker_inputs('ticker-input', 'date-picker', 36)))]) #row 1
-                ,dbc.Row([dbc.Col([make_card("Twitter Order Flow", 'primary', make_table('table-sorting-filtering2', flow, '17px', 10))])
-                        ,dbc.Col([make_card("Fin table ", "secondary", html.Div(id="fin-table"))])
+                
+                dbc.Row([dbc.Col(make_card("Stonk Market Analysis", "primary", ticker_inputs('ticker-input', 'date-picker', 36)))])#row 1
+                ,html.Br()
+                ,dbc.Row([make_card("select ticker", "warning", "select ticker")],id = 'cards') #row 2 
+                ,html.Br()
+                ,dbc.Row([dbc.Col([make_card("Twitter Order Flow", "dark", make_table('table-sorting-filtering2', flow, '17px', 10))])
+                        ,dbc.Col([make_card("Fin table ", "dark", html.Div(id="fin-table"))])
                         ])
-                ,dbc.Row([make_card("select ticker", "warning", "select ticker")],id = 'cards') #row 2
-                , dbc.Row([
+                ,html.Br()
+                ,dbc.Row([
                         dbc.Col([ 
-                          dbc.Row([make_card("Wallstreet Bets New Posts", 'primary'
+                          dbc.Row([make_card("Wallstreet Bets New Posts", "dark"
                                              ,[html.P(html.Button('Refresh', id='refresh'))
-                                               , #make_table('table-sorting-filtering', dfr, '17px', 4)])
+                                               , make_table('table-sorting-filtering', dfr, '17px', 4)])
                                   ], justify = 'center')
                                 ])
 
-                        ,dbc.Col([dbc.Row([dbc.Alert("________________________Charts________________________", color="primary")], justify = 'center')
+                        ,dbc.Col([dbc.Row([dbc.Alert("    Chart Visualization  ", color="dark")], justify = 'center')
                                 ,dbc.Row(html.Div(id='x-vol-1'), justify = 'center')
                                 #dcc.Graph(id = 'x-vol-1')
                                 #,dbc.Row([dbc.Alert("place holder 5", color="primary")])
