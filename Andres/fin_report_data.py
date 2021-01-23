@@ -59,6 +59,7 @@ def get_financial_report(ticker):
                   roa,'longterm Debt': longtermDebt,'interest Expense': interestExpense,'ebitda': ebitda},index=range(date.today().year-6,date.today().year))
     
     fin_df.reset_index(inplace=True)
+    fin_df.drop(axis=0, index=5)
     
     return fin_df
 
