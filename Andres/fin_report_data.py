@@ -15,7 +15,7 @@ def get_financial_report(ticker):
 
 
     # build lists for Income statement
-    titlesfinancials = text_soup_financials.findAll('td', {'class': 'rowTitle'})
+    titlesfinancials = text_soup_financials.findAll('td', {'class': 'overflow__cell fixed--column'})
     epslist=[]
     netincomelist = []
     longtermdebtlist = [] 
@@ -24,23 +24,23 @@ def get_financial_report(ticker):
 
     for title in titlesfinancials:
         if 'EPS (Basic)' in title.text:
-            epslist.append ([td.text for td in title.findNextSiblings(attrs={'class': 'valueCell'}) if td.text])
+            epslist.append ([td.text for td in title.findNextSiblings(attrs={'class': 'overflow__cell'}) if td.text])
         if 'Net Income' in title.text:
-            netincomelist.append ([td.text for td in title.findNextSiblings(attrs={'class': 'valueCell'}) if td.text])
+            netincomelist.append ([td.text for td in title.findNextSiblings(attrs={'class': 'overflow__cell'}) if td.text])
         if 'Interest Expense' in title.text:
-            interestexpenselist.append ([td.text for td in title.findNextSiblings(attrs={'class': 'valueCell'}) if td.text])
+            interestexpenselist.append ([td.text for td in title.findNextSiblings(attrs={'class': 'overflow__cell'}) if td.text])
         if 'EBITDA' in title.text:
-            ebitdalist.append ([td.text for td in title.findNextSiblings(attrs={'class': 'valueCell'}) if td.text])
+            ebitdalist.append ([td.text for td in title.findNextSiblings(attrs={'class': 'overflow__cell'}) if td.text])
 
 
     # find the table headers for the Balance sheet
-    titlesbalancesheet = text_soup_balancesheet.findAll('td', {'class': 'rowTitle'})
+    titlesbalancesheet = text_soup_balancesheet.findAll('td', {'class': 'overflow__cell fixed--column'})
     equitylist=[]
     for title in titlesbalancesheet:
         if 'Total Shareholders\' Equity' in title.text:
-            equitylist.append( [td.text for td in title.findNextSiblings(attrs={'class': 'valueCell'}) if td.text])
+            equitylist.append( [td.text for td in title.findNextSiblings(attrs={'class': 'overflow__cell'}) if td.text])
         if 'Long-Term Debt' in title.text:
-            longtermdebtlist.append( [td.text for td in title.findNextSiblings(attrs={'class': 'valueCell'}) if td.text])
+            longtermdebtlist.append( [td.text for td in title.findNextSiblings(attrs={'class': 'overflow__cell'}) if td.text])
 
     #get the data from the income statement lists 
     #use helper function get_element
@@ -56,7 +56,7 @@ def get_financial_report(ticker):
 
     # load all the data into dataframe 
     fin_df= pd.DataFrame({'eps': eps,'eps Growth': epsGrowth,'net Income': netIncome,'shareholder Equity': shareholderEquity,'roa': 
-                  roa,'longterm Debt': longtermDebt,'interest Expense': interestExpense,'ebitda': ebitda},index=range(date.today().year-5,date.today().year))
+                  roa,'longterm Debt': longtermDebt,'interest Expense': interestExpense,'ebitda': ebitda},index=range(date.today().year-6,date.today().year))
     
     fin_df.reset_index(inplace=True)
     

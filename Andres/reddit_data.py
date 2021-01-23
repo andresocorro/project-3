@@ -13,11 +13,11 @@ from config import r_cid, r_csc, r_uag
 def get_reddit(cid= r_cid, csec= r_csc, uag= r_uag, subreddit='wallstreetbets'):
     reddit = praw.Reddit(client_id= cid, client_secret= csec, user_agent= uag)
 
-    posts = reddit.subreddit(subreddit).new(limit=None)
-    #hot_bets = reddit.subreddit('wallstreetbets').hot(limit=1000)
+    # posts = reddit.subreddit(subreddit).new(limit=None)
+    hot_bets = reddit.subreddit('wallstreetbets').hot(limit=1000)
 
     p = []
-    for post in posts:
+    for post in hot_bets:
         p.append([post.title, post.score, post.selftext])
     posts_df = pd.DataFrame(p,columns=['title', 'score', 'post'])
     return posts_df

@@ -71,19 +71,7 @@ layout1 = html.Div([
                 ,html.Br()
                 ,dbc.Row([make_card("select ticker", "warning", "select ticker")],id = 'cards') #row 2 
                 ,html.Br()
-                ,dbc.Row([dbc.Col([make_card("Twitter Order Flow", "primary", make_table('table-sorting-filtering2', flow, '17px', 10))])
-                        ,dbc.Col([make_card("Fin table ", "primary", html.Div(id="fin-table"))])
-                        ])
-                ,html.Br()
-                ,dbc.Row([
-                        dbc.Col([ 
-                          dbc.Row([make_card("Wallstreet Bets New Posts", "primary"
-                                             ,[html.P(html.Button('Refresh', id='refresh'))
-                                               , make_table('table-sorting-filtering', dfr, '17px', 4)])
-                                  ], justify = 'center')
-                                ])
-
-                        ,dbc.Col([dbc.Row([dbc.Alert("    Chart Visualization  ", color="primary")], justify = 'center')
+                ,dbc.Row([dbc.Col([dbc.Row([dbc.Alert("    Chart Visualization  ", color="primary")], justify = 'center')
                                 ,dbc.Row(html.Div(id='x-vol-1'), justify = 'center')
                                 #dcc.Graph(id = 'x-vol-1')
                                 #,dbc.Row([dbc.Alert("place holder 5", color="primary")])
@@ -97,6 +85,20 @@ layout1 = html.Div([
                                                 n_intervals=0)      
                                 ,dbc.Row([html.Div(id='tweets')])
                                 ])#end col
+                        ,dbc.Col([make_card("Fin table ", "primary", html.Div(id="fin-table"))])
+                        ])
+                ,html.Br()
+                ,dbc.Row([
+                        dbc.Col([ 
+                          dbc.Row([make_card("Wallstreet Bets New Posts", "primary"
+                                             ,[html.P(html.Button('Refresh', id='refresh'))
+                                               , make_table('table-sorting-filtering', dfr, '17px', 4)])
+                                  ], justify = 'center')
+                                ])
+
+                        ,dbc.Col([make_card("Twitter Order Flow", "primary", make_table('table-sorting-filtering2', flow, '17px', 10))])
+                        
+
                 
                 ])#end row 
                     
@@ -312,8 +314,8 @@ def fin_report(sym):
  
         sym = sym.upper()
         df = get_financial_report(sym)
-        table = make_table('table-sorting-filtering3', df, '20px',8)
-        #table = dbc.Table.from_dataframe(df, striped=True, bordered=True, hover=True)
+        #table = make_table('table-sorting-filtering3', df, '20px',8)
+        table = dbc.Table.from_dataframe(df, striped=True, bordered=True, hover=True)
 
         return table
 
