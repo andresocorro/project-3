@@ -48,7 +48,7 @@ dfr = get_reddit()
                 
 navbar = dbc.NavbarSimple(
     children=[
-        dbc.NavItem(dbc.NavLink("Machine Learning", href="http://127.0.0.1:8050/ML")),
+        dbc.NavItem(dbc.NavLink("Machine Learning", href="/ML")),
         dbc.DropdownMenu(
             children=[
                 dbc.DropdownMenuItem("More pages", header=True),
