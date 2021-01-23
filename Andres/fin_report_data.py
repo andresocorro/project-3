@@ -10,8 +10,8 @@ def get_financial_report(ticker):
     urlfinancials = 'https://www.marketwatch.com/investing/stock/'+ticker+'/financials'
     urlbalancesheet = 'https://www.marketwatch.com/investing/stock/'+ticker+'/financials/balance-sheet'
 
-    text_soup_financials = BeautifulSoup(requests.get(urlfinancials).text,"html") #read in
-    text_soup_balancesheet = BeautifulSoup(requests.get(urlbalancesheet).text,"html") #read in
+    text_soup_financials = BeautifulSoup(requests.get(urlfinancials).text,"lxml") #read in
+    text_soup_balancesheet = BeautifulSoup(requests.get(urlbalancesheet).text,"lxml") #read in
 
 
     # build lists for Income statement

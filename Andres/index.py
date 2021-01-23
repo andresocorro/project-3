@@ -27,8 +27,8 @@ from reddit_data import get_reddit
 from tweet_data import get_options_flow
 from fin_report_data import get_financial_report #, get_financial_reportformatted
 
-# Connect to Machine Learning script
-from apps import machineLearning
+# # Connect to Machine Learning script
+# from apps import machineLearning
 
 
 FL = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/flatly/bootstrap.min.css"
@@ -39,6 +39,7 @@ app = dash.Dash(__name__,server = server ,meta_tags=[{ "content": "width=device-
 
 app.config.suppress_callback_exceptions = True
 
+# # Twitter database pull
 get_options_flow()
 flow= pd.read_sql("select datetime, text from tweets order by datetime desc", conn)
 
@@ -59,11 +60,20 @@ navbar = dbc.NavbarSimple(
             label="More",
         ),
     ],
-    brand="Stonk Market Analysis",
+    brand="Stonks Market Analysis",
     brand_href="#",
     color="primary",
     dark=True,
 )
+
+app.layout = html.Div([
+    dcc.Location(id='url', refresh=False),
+    html.Div([
+        dcc.Link('Main | ', href='http://127.0.0.1:8050/Main'),
+        dcc.Link('Machine Learning', href='http://127.0.0.1:8050/ML'),
+    ], className="row"),
+    html.Div(id='page-content', children=[])
+])
 
 layout1 = html.Div([
         # html.Div(id = 'cards')
@@ -105,16 +115,18 @@ layout1 = html.Div([
                 ,html.Div(id='page-content', children=[])
 ]) #end div
 
-# Decides what layout to display based on what link you are on
-@app.callback(Output(component_id = 'page-content', component_property='children'), 
-                [Input(component_id='url', component_property='pathname')])
-def display_page(pathname):
-        if pathname == '/ML':
-                return pathname
-        else:
-                return 'error'
-
 app.layout= layout1
+
+# # Decides what layout to display based on what link you are on
+# @app.callback(Output(component_id = 'page-content', component_property='children'), 
+#                 [Input(component_id='url', component_property='pathname')])
+# def display_page(pathname):
+#         if pathname == '/Main':
+#                 return layout1
+#         if pathname == '/ML':
+#                 return machineLearning.layout
+#         else:
+#                 return 'error'
 
 #Operators
 operators = [['ge ', '>='],
@@ -329,61 +341,61 @@ def fin_report(sym):
 
         return table
 
-@server.route("/ML")
-def machineLearning():
-        import numpy as np
-        from pmdarima.arima import AutoARIMA
-        import plotly.graph_objects as go
-        from tqdm.notebook import tqdm
-        from sklearn.metrics import mean_squared_error
-        import yfinance as yf
-        import matplotlib.pyplot as plt
-        plt.style.use('fivethirtyeight')
-        from statsmodels.tools.eval_measures import rmse
-        import seaborn as sns
-        import statsmodels.api as sm
-        import itertools
-        from statsmodels.tsa.arima_model import ARIMA, ARMA
-        import warnings
-        warnings.filterwarnings("ignore")
+# @server.route("/ML")
+# def machineLearning():
+#         import numpy as np
+#         from pmdarima.arima import AutoARIMA
+#         import plotly.graph_objects as go
+#         from tqdm.notebook import tqdm
+#         from sklearn.metrics import mean_squared_error
+#         import yfinance as yf
+#         import matplotlib.pyplot as plt
+#         plt.style.use('fivethirtyeight')
+#         from statsmodels.tools.eval_measures import rmse
+#         import seaborn as sns
+#         import statsmodels.api as sm
+#         import itertools
+#         from statsmodels.tsa.arima_model import ARIMA, ARMA
+#         import warnings
+#         warnings.filterwarnings("ignore")
 
-        df = yf.Ticker('BTC-USD').history(period='Max')
-        df = df.filter(['Close'])
+#         df = yf.Ticker('BTC-USD').history(period='Max')
+#         df = df.filter(['Close'])
 
-        # Define the p, d and q parameters to take any value between 0 and 3
-        p = d = q = range(0, 3)
-        # Generate all different combinations of p, q and q
-        pdq = list(itertools.product(p, d, q))
-        warnings.filterwarnings("ignore")
-        aic= []
-        parameters = []
-        for param in pdq:
-                #for param in pdq:
-                try:
-                        mod = sm.tsa.statespace.SARIMAX(df, order=param, enforce_stationarity=True, enforce_invertibility=True)
-                        results = mod.fit()
-                        # save results in lists
-                        aic.append(results.aic)
-                        parameters.append(param)
-                        #seasonal_param.append(param_seasonal)
-                        print('ARIMA{} - AIC:{}'.format(param, results.aic))
-                except:
-                        continue
-                # find lowest aic          
-                index_min = min(range(len(aic)), key=aic.__getitem__)           
+#         # Define the p, d and q parameters to take any value between 0 and 3
+#         p = d = q = range(0, 3)
+#         # Generate all different combinations of p, q and q
+#         pdq = list(itertools.product(p, d, q))
+#         warnings.filterwarnings("ignore")
+#         aic= []
+#         parameters = []
+#         for param in pdq:
+#                 #for param in pdq:
+#                 try:
+#                         mod = sm.tsa.statespace.SARIMAX(df, order=param, enforce_stationarity=True, enforce_invertibility=True)
+#                         results = mod.fit()
+#                         # save results in lists
+#                         aic.append(results.aic)
+#                         parameters.append(param)
+#                         #seasonal_param.append(param_seasonal)
+#                         print('ARIMA{} - AIC:{}'.format(param, results.aic))
+#                 except:
+#                         continue
+#                 # find lowest aic          
+#                 index_min = min(range(len(aic)), key=aic.__getitem__)           
 
-                print('The optimal model is: ARIMA{} -AIC{}'.format(parameters[index_min], aic[index_min]))
+#                 print('The optimal model is: ARIMA{} -AIC{}'.format(parameters[index_min], aic[index_min]))
 
-        model = ARIMA(df, order=parameters[index_min])
-        model_fit = model.fit(disp=0)
-        fig, ax = plt.subplots(figsize=(12, 8))
-        model_fit.plot_predict(start=len(df)-30, end=len(df)+5, ax=ax)
+#         model = ARIMA(df, order=parameters[index_min])
+#         model_fit = model.fit(disp=0)
+#         fig, ax = plt.subplots(figsize=(12, 8))
+#         model_fit.plot_predict(start=len(df)-30, end=len(df)+5, ax=ax)
 
-        empty_list =[]
-        tom_forecast = model_fit.forecast(5)[0][0]
-        empty_list.append(tom_forecast)
+#         empty_list =[]
+#         tom_forecast = model_fit.forecast(5)[0][0]
+#         empty_list.append(tom_forecast)
 
-        return jsonify(empty_list)
+#         return jsonify(empty_list)
 
 
 if __name__ == '__main__':
