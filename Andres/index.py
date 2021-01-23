@@ -358,7 +358,9 @@ def fin_report(sym):
 #         from statsmodels.tsa.arima_model import ARIMA, ARMA
 #         import warnings
 #         warnings.filterwarnings("ignore")
-
+#         
+#         ticker = eventlistener()
+# 
 #         df = yf.Ticker('BTC-USD').history(period='Max')
 #         df = df.filter(['Close'])
 
