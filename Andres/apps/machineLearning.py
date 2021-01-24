@@ -75,3 +75,17 @@
 #                 ,dcc.Location(id='url', refresh=False)
 #                 ,html.Div(id='page-content', children=[])
 # ]) #end div
+
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dependencies import Input, Output
+import plotly.express as px
+import pandas as pd
+
+# from app import app
+
+layout = html.Div([
+    html.H1('Train your Model!', style={"textAlign": "center"})
+
+
+])

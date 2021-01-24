@@ -26,6 +26,7 @@ from dash_utils import make_table, make_card, ticker_inputs, make_item
 from reddit_data import get_reddit
 from tweet_data import get_options_flow
 from fin_report_data import get_financial_report #, get_financial_reportformatted
+from apps import machineLearning
 
 # # Connect to Machine Learning script
 # from apps import machineLearning
@@ -46,9 +47,10 @@ flow= pd.read_sql("select datetime, text from tweets order by datetime desc", co
 global dfr 
 dfr = get_reddit()
                 
-navbar = dbc.NavbarSimple(
+app.layout = html.Div([
+    dbc.NavbarSimple(
     children=[
-        dbc.NavItem(dbc.NavLink("Machine Learning", href="/ML")),
+        dbc.NavItem(dbc.NavLink("Machine Learning", href="/apps/machineLearning")),
         dbc.DropdownMenu(
             children=[
                 dbc.DropdownMenuItem("More pages", header=True),
@@ -61,25 +63,18 @@ navbar = dbc.NavbarSimple(
         ),
     ],
     brand="Stonks Market Analysis",
-    brand_href="#",
+    brand_href="/",
     color="primary",
     dark=True,
-)
+),
 
-app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    html.Div([
-        dcc.Link('Main | ', href='http://127.0.0.1:8050/Main'),
-        dcc.Link('Machine Learning', href='http://127.0.0.1:8050/ML'),
-    ], className="row"),
-    html.Div(id='page-content', children=[])
+     dcc.Location(id='url', refresh=False),
+     html.Div(id='page-content', children=[])
 ])
 
 layout1 = html.Div([
         # html.Div(id = 'cards')
-                navbar
-                ,html.Br()
-                ,html.Br()
+                html.Br()
                 ,dbc.Row([dbc.Col(make_card("Search a stock", "primary", ticker_inputs('ticker-input', 'date-picker', 36)))])#row 1
                 ,html.Br()
                 ,dbc.Row([make_card("select ticker", "warning", "select ticker")],id = 'cards') #row 2 
@@ -111,11 +106,11 @@ layout1 = html.Div([
 
                         ,dbc.Col([make_card("Twitter Order Flow", "primary", make_table('table-sorting-filtering2', flow, '17px', 10))])
                 ])
-                ,dcc.Location(id='url', refresh=False)
-                ,html.Div(id='page-content', children=[])
+                # ,dcc.Location(id='url', refresh=False)
+                # ,html.Div(id='page-content', children=[])
 ]) #end div
 
-app.layout= layout1
+# app.layout= layout1
 
 # # Decides what layout to display based on what link you are on
 # @app.callback(Output(component_id = 'page-content', component_property='children'), 
@@ -127,6 +122,16 @@ app.layout= layout1
 #                 return machineLearning.layout
 #         else:
 #                 return 'error'
+
+@app.callback(Output('page-content', 'children'),
+              [Input('url', 'pathname')])
+def display_page(pathname):
+    if pathname == '/':
+        return layout1
+    if pathname == '/apps/machineLearning':
+        return machineLearning.layout
+    else:
+        return "404 Page Error! Please choose a link"
 
 #Operators
 operators = [['ge ', '>='],
