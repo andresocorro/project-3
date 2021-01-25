@@ -18,13 +18,17 @@ import praw
 import sqlite3
 import json
 
+# Connect to main app.py file
+from app import app
+from app import server
+
 import plotly
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from dash_utils import make_table, make_card, ticker_inputs, make_item
 from reddit_data import get_reddit
-from tweet_data import get_options_flow
+# from tweet_data import get_options_flow
 from fin_report_data import get_financial_report #, get_financial_reportformatted
 from apps import machineLearning
 
@@ -34,15 +38,15 @@ from apps import machineLearning
 
 FL = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/flatly/bootstrap.min.css"
 # DL = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/darkly/bootstrap.min.css"
-conn = sqlite3.connect('stocks.sqlite')
-server = Flask(__name__)
-app = dash.Dash(__name__,server = server ,meta_tags=[{ "content": "width=device-width"}], external_stylesheets=[FL])
+# conn = sqlite3.connect('stocks.sqlite')
+# server = Flask(__name__)
+# app = dash.Dash(__name__,server = server ,meta_tags=[{ "content": "width=device-width"}], external_stylesheets=[FL])
 
-app.config.suppress_callback_exceptions = True
+# app.config.suppress_callback_exceptions = True
 
 # # Twitter database pull
-get_options_flow()
-flow= pd.read_sql("select datetime, text from tweets order by datetime desc", conn)
+# get_options_flow()
+# flow= pd.read_sql("select datetime, text from tweets order by datetime desc", conn)
 
 global dfr 
 dfr = get_reddit()
@@ -104,7 +108,7 @@ layout1 = html.Div([
                                   ], justify = 'center')
                                 ])
 
-                        ,dbc.Col([make_card("Twitter Order Flow", "primary", make_table('table-sorting-filtering2', flow, '17px', 10))])
+                        # ,dbc.Col([make_card("Twitter Order Flow", "primary", make_table('table-sorting-filtering2', flow, '17px', 10))])
                 ])
                 # ,dcc.Location(id='url', refresh=False)
                 # ,html.Div(id='page-content', children=[])
@@ -243,13 +247,13 @@ def create_graph(ticker,startdate, enddate, n):
                         ], className="accordion")
         return accordion
 
-@app.callback(
-    Output('tweets', 'children'),
-    [Input('interval-component2', 'n_intervals'),
-     ])
-def new_tweets(n):
-        get_options_flow()
-        return html.P(f"Reloaded Tweets {n}")
+# @app.callback(
+#     Output('tweets', 'children'),
+#     [Input('interval-component2', 'n_intervals'),
+#      ])
+# def new_tweets(n):
+#         get_options_flow()
+#         return html.P(f"Reloaded Tweets {n}")
   
 
 @app.callback(
