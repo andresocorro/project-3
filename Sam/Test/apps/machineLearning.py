@@ -46,11 +46,15 @@ layout = html.Div([
     html.Div(dcc.Input(id='input-box', placeholder='MSFT', type='text', style={"textAlign": "center"}), style={"textAlign": "center"}),
     html.Div(html.Button('Train Model', id='button'), style={"textAlign": "center"}),
     html.Div(id='output-container-button', children='Enter stock ticker and click submit', style={"textAlign": "center"}),
-    html.Div(id='model-graph', style={"textAlign": "center"})
+    html.Div(id='model-graph', style={"textAlign": "center"}),
+    html.Br(),
+    html.Div(id='model-summary-0', style={"textAlign": "center", 'whiteSpace': 'pre-wrap'}),
+    html.Br(),
+    html.Div(id='model-summary-1', style={"textAlign": "center", 'whiteSpace': 'pre-wrap'})
 ])
 
 @app.callback(
-    Output('model-graph', 'children'),
+    [Output('model-graph', 'children'), Output('model-summary-0', 'children'), Output('model-summary-1', 'children')],
     [Input('button', 'n_clicks')],
     [State('input-box', 'value')])
 def update_output(n_clicks, value):
@@ -89,16 +93,84 @@ def update_output(n_clicks, value):
     # Gives us next 5 days forecasted
     # graph = [round(model_fit.forecast(5)[0][0],2), round(model_fit.forecast(5)[0][1],2), round(model_fit.forecast(5)[0][2],2), round(model_fit.forecast(5)[0][3],2), round(model_fit.forecast(5)[0][4],2)]
     
-    forecastValues = model_fit.forecast(5)[0]
-    dfSeries = df['Close'].append(pd.Series(forecastValues), ignore_index=True)
+    # Updating Indexed
+    last_date = df.index[-1]
+    days = 5
+    for day in range(1, days+1):
+        newEntry = last_date + pd.Timedelta(day, unit='D')
+        forecastValue = model_fit.forecast(days)[0][day-1]
+        dfSeries = df.append(pd.DataFrame({'Close': forecastValue}, index=[newEntry]))
 
-    fig = go.Figure(data=[go.Scatter(x=dfSeries.index.to_list(), y=dfSeries.to_list())])
+    # Append Close values from Prediction
+    # forecastValues = model_fit.forecast(5)[0]
+    # dfSeries = df['Close'].append(pd.Series(forecastValues), ignore_index=True)
+
+    fig = go.Figure(data=[go.Scatter(x=dfSeries.index, y=dfSeries['Close'])])
     graph = dcc.Graph(figure=fig)
 
-    return graph
+    # Print Summary for Website
+    for i in range(2):
+        if i == 0:
+            html = model_fit.summary().tables[i].as_html()
+            df_table = pd.read_html(html, header=0, index_col=0)[0]
+            df_table = df_table.reset_index()
+            table1 = dbc.Table.from_dataframe(df_table, striped=True, bordered=True, hover=True)
+        else:
+            html = model_fit.summary().tables[i].as_html()
+            df_table = pd.read_html(html, header=0, index_col=0)[0]
+            df_table = df_table.reset_index()
+            table2 = dbc.Table.from_dataframe(df_table, striped=True, bordered=True, hover=True)
 
+    return graph, table1, table2
 
-# @app.callback([Output('model-graph', 'children')], [Input('ticker-input', 'value')])
-# def graph_model(ticker):
-#     result = 'Your Model will be based on:' + ticker
-#     return result
+# @app.callback([Output('model-summary-0', 'children'), Output('model-summary-1', 'children')],
+#     [Input('button', 'n_clicks')],
+#     [State('input-box', 'value')])
+# def update_output(n_clicks, value):
+#     ticker = value.upper()
+#     df = yf.Ticker(ticker).history(period='Max')
+#     # df.reset_index(inplace=True)
+#     df = df.filter(['Close'])
+
+#     # Define the p, d and q parameters to take any value between 0 and 3
+#     p = d = q = range(0, 3)
+#     # Generate all different combinations of p, q and q
+#     pdq = list(itertools.product(p, d, q))
+
+#     warnings.filterwarnings("ignore")
+#     aic= []
+#     parameters = []
+#     for param in pdq:
+#     #for param in pdq:
+#         try:
+#             mod = sm.tsa.statespace.SARIMAX(df, order=param, enforce_stationarity=True, enforce_invertibility=True)
+#             results = mod.fit()
+#             # save results in lists
+#             aic.append(results.aic)
+#             parameters.append(param)
+#             #seasonal_param.append(param_seasonal)
+#             # print('ARIMA{} - AIC:{}'.format(param, results.aic))
+#         except:
+#             continue
+#     # find lowest aic          
+#     index_min = min(range(len(aic)), key=aic.__getitem__)           
+
+#     print('The optimal model is: ARIMA{} -AIC{}'.format(parameters[index_min], aic[index_min]))
+
+#     model = ARIMA(df, order=parameters[index_min])
+#     model_fit = model.fit(disp=0)
+
+#     # Print Summary for Website
+#     for i in range(2):
+#         if i == 0:
+#             html = model_fit.summary().tables[i].as_html()
+#             df_table = pd.read_html(html, header=0, index_col=0)[0]
+#             df_table = df_table.reset_index()
+#             table1 = dbc.Table.from_dataframe(df_table, striped=True, bordered=True, hover=True)
+#         else:
+#             html = model_fit.summary().tables[i].as_html()
+#             df_table = pd.read_html(html, header=0, index_col=0)[0]
+#             df_table = df_table.reset_index()
+#             table2 = dbc.Table.from_dataframe(df_table, striped=True, bordered=True, hover=True)
+
+#     return table1, table2
