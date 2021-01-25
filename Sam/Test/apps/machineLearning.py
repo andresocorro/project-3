@@ -26,31 +26,40 @@ import time
 
 
 # This will create the card for ticker
-def make_card(alert_message, color, cardbody, style_dict={"textAlign": "center"}):
-    return dbc.Card([ dbc.Alert(alert_message, color = color), dbc.CardBody(cardbody)], style = style_dict)
+def make_card(alert_message, color, style_dict={"textAlign": "center"}):
+    return dbc.Card([ dbc.Alert(alert_message, color = color)], style = style_dict)
 
-# Takes the input
-def ticker_inputs(inputID):
-
-    return html.Div([
-        dcc.Input(id = inputID, type="text", placeholder="MSFT", style={"textAlign": "center"}),
-        html.P(" "),
-    ])
+# children=html.Div(id='loading-output'
 
 layout = html.Div([
+    html.Br(),
     html.H1('Train your Model!', style={"textAlign": "center"}),
     html.Br(),
+    dbc.Row([dbc.Col(make_card("Search for a stock to train", "primary"))]),
     html.Br(),
-    dbc.Row([dbc.Col(make_card("Search for a stock to train", "primary", ticker_inputs('ticker-input')))]),
+    html.Div([dcc.Input(id='input-box', placeholder='MSFT', type='text', style={"textAlign": "center"}),
     html.Br(),
-    html.Div(dcc.Input(id='input-box', placeholder='MSFT', type='text', style={"textAlign": "center"}), style={"textAlign": "center"}),
+    html.Br(),
     html.Div(html.Button('Train Model', id='button'), style={"textAlign": "center"}),
+    html.Br(),
+    dcc.Loading(id='loading-output', type='graph', fullscreen=True ,style={"textAlign": "center"})], style={"textAlign": "center"}),
     html.Div(id='output-container-button', children='Enter stock ticker and click submit', style={"textAlign": "center"}),
-    html.Div(id='model-graph', style={"textAlign": "center"})
+    html.Br(),
+    html.Div(id='model-graph', style={"textAlign": "center"}),
+    html.Br(),
+    html.Div(html.H3(id='model-summary-title', style={"textAlign": "center"})),
+    html.Br(),
+    html.Div(id='model-summary-0', style={"textAlign": "center"}),
+    html.Br(),
+    html.Div(id='model-summary-1', style={"textAlign": "center", 'whiteSpace': 'pre-wrap'}),
 ])
 
 @app.callback(
-    Output('model-graph', 'children'),
+    [Output('model-graph', 'children'), 
+        Output('model-summary-0', 'children'), 
+        Output('model-summary-1', 'children'), 
+        Output('loading-output', 'children'), 
+        Output('model-summary-title', 'children')],
     [Input('button', 'n_clicks')],
     [State('input-box', 'value')])
 def update_output(n_clicks, value):
@@ -89,16 +98,35 @@ def update_output(n_clicks, value):
     # Gives us next 5 days forecasted
     # graph = [round(model_fit.forecast(5)[0][0],2), round(model_fit.forecast(5)[0][1],2), round(model_fit.forecast(5)[0][2],2), round(model_fit.forecast(5)[0][3],2), round(model_fit.forecast(5)[0][4],2)]
     
-    forecastValues = model_fit.forecast(5)[0]
-    dfSeries = df['Close'].append(pd.Series(forecastValues), ignore_index=True)
+    # Updating Indexed
+    last_date = df.index[-1]
+    days = 5
+    for day in range(1, days+1):
+        newEntry = last_date + pd.Timedelta(day, unit='D')
+        forecastValue = model_fit.forecast(days)[0][day-1]
+        dfSeries = df.append(pd.DataFrame({'Close': forecastValue}, index=[newEntry]))
 
-    fig = go.Figure(data=[go.Scatter(x=dfSeries.index.to_list(), y=dfSeries.to_list())])
+    # Append Close values from Prediction
+    # forecastValues = model_fit.forecast(5)[0]
+    # dfSeries = df['Close'].append(pd.Series(forecastValues), ignore_index=True)
+
+    fig = go.Figure(data=[go.Scatter(x=dfSeries.index, y=dfSeries['Close'])])
     graph = dcc.Graph(figure=fig)
 
-    return graph
-
-
-# @app.callback([Output('model-graph', 'children')], [Input('ticker-input', 'value')])
-# def graph_model(ticker):
-#     result = 'Your Model will be based on:' + ticker
-#     return result
+    # Print Summary for Website
+    for i in range(2):
+        if i == 0:
+            html = model_fit.summary().tables[i].as_html()
+            df_table = pd.read_html(html, header=0, index_col=0)[0]
+            df_table = df_table.reset_index()
+            # df_table = df_table.dropna
+            table1 = dbc.Table.from_dataframe(df_table, striped=True, bordered=True, hover=True)
+        else:
+            html = model_fit.summary().tables[i].as_html()
+            df_table = pd.read_html(html, header=0, index_col=0)[0]
+            df_table = df_table.reset_index()
+            table2 = dbc.Table.from_dataframe(df_table, striped=True, bordered=True, hover=True)
+    
+    empty_string = ''
+    table_title = 'Arima Summary Results'
+    return graph, table1, table2, empty_string, table_title
