@@ -28,25 +28,20 @@ from plotly.subplots import make_subplots
 
 from dash_utils import make_table, make_card, ticker_inputs, make_item
 from reddit_data import get_reddit
-# from tweet_data import get_options_flow
+from tweet_data import get_options_flow
 from fin_report_data import get_financial_report #, get_financial_reportformatted
 from apps import machineLearning
 
 # # Connect to Machine Learning script
 # from apps import machineLearning
 
-
-FL = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/flatly/bootstrap.min.css"
-# DL = "https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/darkly/bootstrap.min.css"
-# conn = sqlite3.connect('stocks.sqlite')
-# server = Flask(__name__)
-# app = dash.Dash(__name__,server = server ,meta_tags=[{ "content": "width=device-width"}], external_stylesheets=[FL])
+conn = sqlite3.connect('stocks.sqlite')
 
 # app.config.suppress_callback_exceptions = True
 
-# # Twitter database pull
-# get_options_flow()
-# flow= pd.read_sql("select datetime, text from tweets order by datetime desc", conn)
+# Twitter database pull
+get_options_flow()
+flow= pd.read_sql("select datetime, text from tweets order by datetime desc", conn)
 
 global dfr 
 dfr = get_reddit()
@@ -85,15 +80,15 @@ layout1 = html.Div([
                 ,html.Br()
                 ,dbc.Row([dbc.Col([dbc.Row([dbc.Alert("    Chart Visualization  ", color="primary")], justify = 'center')
                                 ,dbc.Row(html.Div(id='x-vol-1'), justify = 'center')
-                                #dcc.Graph(id = 'x-vol-1')
-                                #,dbc.Row([dbc.Alert("place holder 5", color="primary")])
+                                # ,dcc.Graph(id = 'x-vol-1')
+                                # ,dbc.Row([dbc.Alert("place holder 5", color="primary")])
                                 , dcc.Interval(
                                                 id='interval-component',
-                                                interval=1*150000, # in milliseconds
+                                                interval=1*1500000, # in milliseconds
                                                 n_intervals=0)   
                                 , dcc.Interval(
                                                 id='interval-component2',
-                                                interval=1*60000, # in milliseconds
+                                                interval=1*6000000, # in milliseconds
                                                 n_intervals=0)      
                                 ,dbc.Row([html.Div(id='tweets')])
                                 ])#end col
@@ -108,24 +103,9 @@ layout1 = html.Div([
                                   ], justify = 'center')
                                 ])
 
-                        # ,dbc.Col([make_card("Twitter Order Flow", "primary", make_table('table-sorting-filtering2', flow, '17px', 10))])
+                        ,dbc.Col([make_card("Twitter Order Flow", "primary", make_table('table-sorting-filtering2', flow, '17px', 10))])
                 ])
-                # ,dcc.Location(id='url', refresh=False)
-                # ,html.Div(id='page-content', children=[])
 ]) #end div
-
-# app.layout= layout1
-
-# # Decides what layout to display based on what link you are on
-# @app.callback(Output(component_id = 'page-content', component_property='children'), 
-#                 [Input(component_id='url', component_property='pathname')])
-# def display_page(pathname):
-#         if pathname == '/Main':
-#                 return layout1
-#         if pathname == '/ML':
-#                 return machineLearning.layout
-#         else:
-#                 return 'error'
 
 @app.callback(Output('page-content', 'children'),
               [Input('url', 'pathname')])
@@ -247,13 +227,13 @@ def create_graph(ticker,startdate, enddate, n):
                         ], className="accordion")
         return accordion
 
-# @app.callback(
-#     Output('tweets', 'children'),
-#     [Input('interval-component2', 'n_intervals'),
-#      ])
-# def new_tweets(n):
-#         get_options_flow()
-#         return html.P(f"Reloaded Tweets {n}")
+@app.callback(
+    Output('tweets', 'children'),
+    [Input('interval-component2', 'n_intervals'),
+     ])
+def new_tweets(n):
+        get_options_flow()
+        return html.P(f"Reloaded Tweets {n}")
   
 
 @app.callback(
@@ -296,6 +276,7 @@ def update_table(page_current, page_size, sort_by, filter, n_clicks):
                 size = page_size
                 return dff.iloc[page * size: (page + 1) * size].to_dict('records')
 
+# Twitter
 @app.callback(
     Output('table-sorting-filtering2', 'data'),
     [Input('table-sorting-filtering2', "page_current"),
@@ -349,64 +330,6 @@ def fin_report(sym):
         table = dbc.Table.from_dataframe(df, striped=True, bordered=True, hover=True)
 
         return table
-
-# @server.route("/ML")
-# def machineLearning():
-#         import numpy as np
-#         from pmdarima.arima import AutoARIMA
-#         import plotly.graph_objects as go
-#         from tqdm.notebook import tqdm
-#         from sklearn.metrics import mean_squared_error
-#         import yfinance as yf
-#         import matplotlib.pyplot as plt
-#         plt.style.use('fivethirtyeight')
-#         from statsmodels.tools.eval_measures import rmse
-#         import seaborn as sns
-#         import statsmodels.api as sm
-#         import itertools
-#         from statsmodels.tsa.arima_model import ARIMA, ARMA
-#         import warnings
-#         warnings.filterwarnings("ignore")
-#         
-#         ticker = eventlistener()
-# 
-#         df = yf.Ticker('BTC-USD').history(period='Max')
-#         df = df.filter(['Close'])
-
-#         # Define the p, d and q parameters to take any value between 0 and 3
-#         p = d = q = range(0, 3)
-#         # Generate all different combinations of p, q and q
-#         pdq = list(itertools.product(p, d, q))
-#         warnings.filterwarnings("ignore")
-#         aic= []
-#         parameters = []
-#         for param in pdq:
-#                 #for param in pdq:
-#                 try:
-#                         mod = sm.tsa.statespace.SARIMAX(df, order=param, enforce_stationarity=True, enforce_invertibility=True)
-#                         results = mod.fit()
-#                         # save results in lists
-#                         aic.append(results.aic)
-#                         parameters.append(param)
-#                         #seasonal_param.append(param_seasonal)
-#                         print('ARIMA{} - AIC:{}'.format(param, results.aic))
-#                 except:
-#                         continue
-#                 # find lowest aic          
-#                 index_min = min(range(len(aic)), key=aic.__getitem__)           
-
-#                 print('The optimal model is: ARIMA{} -AIC{}'.format(parameters[index_min], aic[index_min]))
-
-#         model = ARIMA(df, order=parameters[index_min])
-#         model_fit = model.fit(disp=0)
-#         fig, ax = plt.subplots(figsize=(12, 8))
-#         model_fit.plot_predict(start=len(df)-30, end=len(df)+5, ax=ax)
-
-#         empty_list =[]
-#         tom_forecast = model_fit.forecast(5)[0][0]
-#         empty_list.append(tom_forecast)
-
-#         return jsonify(empty_list)
 
 
 if __name__ == '__main__':
