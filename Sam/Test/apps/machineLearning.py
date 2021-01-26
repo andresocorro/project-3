@@ -13,6 +13,7 @@ from datetime import date
 # Imports for Machine Learning
 import numpy as np
 from pmdarima.arima import AutoARIMA
+from pmdarima.arima.utils import ndiffs
 from tqdm.notebook import tqdm
 from sklearn.metrics import mean_squared_error
 import yfinance as yf
@@ -43,15 +44,16 @@ layout = html.Div([
     html.Div(html.Button('Train Model', id='button'), style={"textAlign": "center"}),
     html.Br(),
     dcc.Loading(id='loading-output', type='graph', fullscreen=True ,style={"textAlign": "center"})], style={"textAlign": "center"}),
-    html.Div(id='output-container-button', children='Enter stock ticker and click submit', style={"textAlign": "center"}),
+    html.Br(),
+    html.Div(id='projected-results', style={"textAlign": "center", 'marginLeft':'40%', 'marginRight':'40%','font-weight':'bold'}),
     html.Br(),
     html.Div(id='model-graph', style={"textAlign": "center"}),
     html.Br(),
-    html.Div(html.H3(id='model-summary-title', style={"textAlign": "center"})),
+    html.Div(id='model-summary-title', style={"textAlign": "center"}),
     html.Br(),
-    html.Div(id='model-summary-0', style={"textAlign": "center"}),
+    html.Div(id='model-summary-0', style={"textAlign": "center",'marginLeft':'15%', 'marginRight':'15%'}),
     html.Br(),
-    html.Div(id='model-summary-1', style={"textAlign": "center", 'whiteSpace': 'pre-wrap'}),
+    html.Div(id='model-summary-1', style={"textAlign": "center", 'whiteSpace': 'pre-wrap','marginLeft':'15%', 'marginRight':'15%'}),
 ])
 
 @app.callback(
@@ -59,7 +61,8 @@ layout = html.Div([
         Output('model-summary-0', 'children'), 
         Output('model-summary-1', 'children'), 
         Output('loading-output', 'children'), 
-        Output('model-summary-title', 'children')],
+        Output('model-summary-title', 'children'),
+        Output('projected-results', 'children')],
     [Input('button', 'n_clicks')],
     [State('input-box', 'value')])
 def update_output(n_clicks, value):
@@ -69,7 +72,11 @@ def update_output(n_clicks, value):
     df = df.filter(['Close'])
 
     # Define the p, d and q parameters to take any value between 0 and 3
-    p = d = q = range(0, 3)
+    d_value = ndiffs(df['Close'], test='adf')
+    d = range(0,d_value+1)
+    p = range(0,4)
+    q = range(0,3)
+    # p = d = q = range(0,3)
     # Generate all different combinations of p, q and q
     pdq = list(itertools.product(p, d, q))
 
@@ -95,9 +102,7 @@ def update_output(n_clicks, value):
 
     model = ARIMA(df, order=parameters[index_min])
     model_fit = model.fit(disp=0)
-    # Gives us next 5 days forecasted
-    # graph = [round(model_fit.forecast(5)[0][0],2), round(model_fit.forecast(5)[0][1],2), round(model_fit.forecast(5)[0][2],2), round(model_fit.forecast(5)[0][3],2), round(model_fit.forecast(5)[0][4],2)]
-    
+
     # Updating Indexed
     last_date = df.index[-1]
     days = 5
@@ -105,10 +110,6 @@ def update_output(n_clicks, value):
         newEntry = last_date + pd.Timedelta(day, unit='D')
         forecastValue = model_fit.forecast(days)[0][day-1]
         dfSeries = df.append(pd.DataFrame({'Close': forecastValue}, index=[newEntry]))
-
-    # Append Close values from Prediction
-    # forecastValues = model_fit.forecast(5)[0]
-    # dfSeries = df['Close'].append(pd.Series(forecastValues), ignore_index=True)
 
     fig = go.Figure(data=[go.Scatter(x=dfSeries.index, y=dfSeries['Close'])])
     graph = dcc.Graph(figure=fig)
@@ -127,6 +128,19 @@ def update_output(n_clicks, value):
             df_table = df_table.reset_index()
             table2 = dbc.Table.from_dataframe(df_table, striped=True, bordered=True, hover=True)
     
+    # Create the forecasted values results to print
+    days=[]
+    predList = []
+    for i in range(5):
+        days.append(i+1)
+        predValue = '$ ' + str(round(model_fit.forecast(5)[0][i],2))
+        predList.append(predValue)
+
+    df_pred_table = pd.DataFrame({'Number of Days in Future':days,
+                    'Close Price': predList})
+
+    table3 = dbc.Table.from_dataframe(df_pred_table, striped=True, bordered=True, hover=True, size='sm')
+
     empty_string = ''
     table_title = 'Arima Summary Results'
-    return graph, table1, table2, empty_string, table_title
+    return graph, table1, table2, empty_string, table_title, table3
